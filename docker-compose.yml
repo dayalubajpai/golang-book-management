@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:10.5  # Works on ARM (Apple Silicon) but not optimized
+    # Alternatively, use `mariadb:latest` or `mariadb:10.6` for better ARM support
+    platform: linux/amd64  # Forces Intel emulation if ARM-native image is unstable
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: bookstore
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: adminpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql  # Persists database data
+
+  phpmyadmin:
+    image: phpmyadmin:latest  # Official image (ARM-compatible)
+    # Alternatively: `bitnami/phpmyadmin:latest` (also ARM-compatible)
+    restart: always
+    environment:
+      PMA_HOST: db  # Links to the `db` service
+      PMA_USER: admin
+      PMA_PASSWORD: adminpassword
+      UPLOAD_LIMIT: 128M  # Increases file upload limit
+    ports:
+      - "8080:80"  # Changed to 8080 (standard phpMyAdmin port)
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:  # Ensures DB data persists after container restarts
+  
+# check db is working via check 
+
+# docker ps  ( To get container id )
+# docker exec -it <container_id> sh
+# mkdir -p /var/lib/apt/lists/partial
+# apt-get update && apt-get install -y iputils-ping
+# ping db
